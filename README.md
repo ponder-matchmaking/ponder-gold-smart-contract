@@ -1,1 +1,2 @@
-# ponder-gold-smart-contract
+Ponder Gold Smart Contract
+============================
