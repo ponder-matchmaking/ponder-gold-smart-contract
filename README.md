@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="https://tokensale.ponderapp.co/img/ponder_logo.svg" height="100" />
+</p>
+
 ## What is Ponder ?
 Ponder is a decentralized matchmaking platform. It allows introductions between people
 to be made at scale. Using game mechanics and financial rewards Ponder motivates
