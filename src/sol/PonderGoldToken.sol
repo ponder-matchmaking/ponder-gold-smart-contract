@@ -11,11 +11,6 @@ contract PonderGoldToken is AbstractToken {
   address private owner;
 
   /**
-   * Total number of tokens in circulation.
-   */
-  uint256 tokenCount;
-
-  /**
    * True if tokens transfers are currently frozen, false otherwise.
    */
   bool frozen = false;
@@ -24,13 +19,10 @@ contract PonderGoldToken is AbstractToken {
    * Create new Ponder token smart contract, with given number of tokens issued
    * and given to msg.sender, and make msg.sender the owner of this smart
    * contract.
-   *
-   * @param _tokenCount number of tokens to issue and give to msg.sender
    */
-  function PonderGoldToken (uint256 _tokenCount) public {
+  function PonderGoldToken () public {
     owner = msg.sender;
-    tokenCount = _tokenCount;
-    accounts [msg.sender] = _tokenCount;
+    accounts [msg.sender] = totalSupply();
   }
 
   /**
@@ -39,7 +31,7 @@ contract PonderGoldToken is AbstractToken {
    * @return total number of tokens in circulation
    */
   function totalSupply () public constant returns (uint256 supply) {
-    return tokenCount;
+    return 360000000 * (10^decimals());
   }
 
   /**
