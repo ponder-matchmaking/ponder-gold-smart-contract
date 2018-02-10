@@ -15,3 +15,16 @@ be given by the latter (Matchee) to pay the former for the value they’ve creat
 
 ## WhitePaper
 https://tokensale.ponderapp.co/#whitepaper
+
+## Building
+The smart contract can be built two ways
+1. Using the `build.sh` script
+
+2. Using `ant` with the command `ant build`
+ Copy `build.properties.sample` file into `build.properties` and edit it as necessary
+ Run the following command: `ant build`
+ After successful build, `target` directory will contain compiled contract as well as ABI definition files
+
+## How to Run Tests ##
+Tests can be triggered with this command `ant test`
+
