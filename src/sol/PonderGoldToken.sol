@@ -31,7 +31,7 @@ contract PonderGoldToken is AbstractToken {
    * @return total number of tokens in circulation
    */
   function totalSupply () public constant returns (uint256 supply) {
-    return 360000000 * (uint256(10) ** decimals());
+    return 480000000 * (uint256(10) ** decimals());
   }
 
   /**
@@ -58,7 +58,7 @@ contract PonderGoldToken is AbstractToken {
    * @return number of decimals for this token
    */
   function decimals () public pure returns (uint8 result) {
-    return 6;
+    return 18;
   }
 
   /**
