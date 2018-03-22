@@ -3,8 +3,6 @@
  * Author: Mikhail Vladimirov <mikhail.vladimirov@gmail.com>
  */
 
-pragma solidity ^0.4.16;
-
 /**
  * Provides methods to safely add, subtract and multiply uint256 numbers.
  */

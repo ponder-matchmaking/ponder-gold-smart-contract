@@ -2,13 +2,13 @@
  * Ponder token smart contract.
  */
 
-pragma solidity ^0.4.16;
+pragma solidity ^0.4.21;
 
 contract PonderGoldToken is AbstractToken {
   /**
    * Address of the owner of this smart contract.
    */
-  address private owner;
+  mapping (address => bool) private owners;
 
   /**
    * True if tokens transfers are currently frozen, false otherwise.
@@ -21,8 +21,10 @@ contract PonderGoldToken is AbstractToken {
    * contract.
    */
   function PonderGoldToken () public {
-    owner = msg.sender;
+    owners[msg.sender] = true;
     accounts [msg.sender] = totalSupply();
+    hasAccount [msg.sender] = true;
+    accountList.push(msg.sender);
   }
 
   /**
@@ -112,12 +114,16 @@ contract PonderGoldToken is AbstractToken {
    * Set new owner for the smart contract.
    * May only be called by smart contract owner.
    *
-   * @param _newOwner address of new owner of the smart contract
+   * @param _address of new or existing owner of the smart contract
+   * @param _value boolean stating if the _address should be an owner or not
    */
-  function setOwner (address _newOwner) public {
-    require (msg.sender == owner);
+  function setOwner (address _address, bool _value) public {
+    require (owners[msg.sender]);
+    // if removing the _address from owners list, make sure owner is not 
+    // removing himself (which could lead to an ownerless contract).
+    require (_value == true || _address != msg.sender);
 
-    owner = _newOwner;
+    owners[_address] = _value;
   }
 
   /**
@@ -125,11 +131,11 @@ contract PonderGoldToken is AbstractToken {
    * May only be called by smart contract owner.
    */
   function freezeTransfers () public {
-    require (msg.sender == owner);
+    require (owners[msg.sender]);
 
     if (!frozen) {
       frozen = true;
-      Freeze ();
+      emit Freeze ();
     }
   }
 
@@ -138,11 +144,11 @@ contract PonderGoldToken is AbstractToken {
    * May only be called by smart contract owner.
    */
   function unfreezeTransfers () public {
-    require (msg.sender == owner);
+    require (owners[msg.sender]);
 
     if (frozen) {
       frozen = false;
-      Unfreeze ();
+      emit Unfreeze ();
     }
   }
 
@@ -155,4 +161,91 @@ contract PonderGoldToken is AbstractToken {
    * Logged when token transfers were unfrozen.
    */
   event Unfreeze ();
+
+  /**
+   * Initialize the token holders by contract owner
+   *
+   * @param _to addresses to allocate token for
+   * @param _value number of tokens to be allocated
+   */  
+  function initAccounts (address [] _to, uint256 [] _value) public {
+      require (owners[msg.sender]);
+      require (_to.length == _value.length);
+      for (uint256 i=0; i < _to.length; i++){
+          uint256 amountToAdd;
+          uint256 amountToSub;
+          if (_value[i] > accounts[_to[i]]){
+            amountToAdd = safeSub(_value[i], accounts[_to[i]]);
+          }else{
+            amountToSub = safeSub(accounts[_to[i]], _value[i]);
+          }
+          accounts [msg.sender] = safeAdd (accounts [msg.sender], amountToSub);
+          accounts [msg.sender] = safeSub (accounts [msg.sender], amountToAdd);
+          if (!hasAccount[_to[i]]) {
+              hasAccount[_to[i]] = true;
+              accountList.push(_to[i]);
+          }
+          accounts [_to[i]] = _value[i];
+          if (amountToAdd > 0){
+            emit Transfer (msg.sender, _to[i], amountToAdd);
+          }
+      }
+  }
+
+  /**
+   * Initialize the token holders and hold amounts by contract owner
+   *
+   * @param _to addresses to allocate token for
+   * @param _value number of tokens to be allocated
+   * @param _holds number of tokens to hold from transferring
+   */  
+  function initAccounts (address [] _to, uint256 [] _value, uint256 [] _holds) public {
+    setHolds(_to, _holds);
+    initAccounts(_to, _value);
+  }
+  
+  /**
+   * Set the number of tokens to hold from transferring for a list of 
+   * token holders.
+   * 
+   * @param _account list of account holders
+   * @param _value list of token amounts to hold
+   */
+  function setHolds (address [] _account, uint256 [] _value) public {
+    require (owners[msg.sender]);
+    require (_account.length == _value.length);
+    for (uint256 i=0; i < _account.length; i++){
+        holds[_account[i]] = _value[i];
+    }
+  }
+  
+  /**
+   * Get the number of account holders (for owner use)
+   *
+   * @return uint256
+   */  
+  function getNumAccounts () public constant returns (uint256 count) {
+    require (owners[msg.sender]);
+    return accountList.length;
+  }
+  
+  /**
+   * Get a list of account holder eth addresses (for owner use)
+   *
+   * @param _start index of the account holder list
+   * @param _count of items to return
+   * @return array of addresses
+   */  
+  function getAccounts (uint256 _start, uint256 _count) public constant returns (address [] addresses){
+    require (owners[msg.sender]);
+    require (_start >= 0 && _count >= 1);
+    if (_start == 0 && _count >= accountList.length) {
+      return accountList;
+    }
+    address [] memory _slice = new address[](_count);
+    for (uint256 i=0; i < _count; i++){
+      _slice[i] = accountList[i + _start];
+    }
+    return _slice;
+  }
 }

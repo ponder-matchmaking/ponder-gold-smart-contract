@@ -3,8 +3,6 @@
  * Author: Mikhail Vladimirov <mikhail.vladimirov@gmail.com>
  */
 
-pragma solidity ^0.4.16;
-
 /**
  * ERC-20 standard token interface, as defined
  * <a href="http://github.com/ethereum/EIPs/issues/20">here</a>.
