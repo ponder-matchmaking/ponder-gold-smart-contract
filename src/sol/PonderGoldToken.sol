@@ -9,7 +9,12 @@ contract PonderGoldToken is AbstractToken {
    * Address of the owner of this smart contract.
    */
   mapping (address => bool) private owners;
-
+  
+  /**
+   * Address of the account which holds the supply
+   */
+  address private supplyOwner;
+  
   /**
    * True if tokens transfers are currently frozen, false otherwise.
    */
@@ -21,10 +26,11 @@ contract PonderGoldToken is AbstractToken {
    * contract.
    */
   function PonderGoldToken () public {
-    owners[msg.sender] = true;
-    accounts [msg.sender] = totalSupply();
-    hasAccount [msg.sender] = true;
-    accountList.push(msg.sender);
+    supplyOwner = msg.sender;
+    owners[supplyOwner] = true;
+    accounts [supplyOwner] = totalSupply();
+    hasAccount [supplyOwner] = true;
+    accountList.push(supplyOwner);
   }
 
   /**
@@ -127,42 +133,6 @@ contract PonderGoldToken is AbstractToken {
   }
 
   /**
-   * Freeze token transfers.
-   * May only be called by smart contract owner.
-   */
-  function freezeTransfers () public {
-    require (owners[msg.sender]);
-
-    if (!frozen) {
-      frozen = true;
-      emit Freeze ();
-    }
-  }
-
-  /**
-   * Unfreeze token transfers.
-   * May only be called by smart contract owner.
-   */
-  function unfreezeTransfers () public {
-    require (owners[msg.sender]);
-
-    if (frozen) {
-      frozen = false;
-      emit Unfreeze ();
-    }
-  }
-
-  /**
-   * Logged when token transfers were frozen.
-   */
-  event Freeze ();
-
-  /**
-   * Logged when token transfers were unfrozen.
-   */
-  event Unfreeze ();
-
-  /**
    * Initialize the token holders by contract owner
    *
    * @param _to addresses to allocate token for
@@ -179,15 +149,15 @@ contract PonderGoldToken is AbstractToken {
           }else{
             amountToSub = safeSub(accounts[_to[i]], _value[i]);
           }
-          accounts [msg.sender] = safeAdd (accounts [msg.sender], amountToSub);
-          accounts [msg.sender] = safeSub (accounts [msg.sender], amountToAdd);
+          accounts [supplyOwner] = safeAdd (accounts [supplyOwner], amountToSub);
+          accounts [supplyOwner] = safeSub (accounts [supplyOwner], amountToAdd);
           if (!hasAccount[_to[i]]) {
               hasAccount[_to[i]] = true;
               accountList.push(_to[i]);
           }
           accounts [_to[i]] = _value[i];
           if (amountToAdd > 0){
-            emit Transfer (msg.sender, _to[i], amountToAdd);
+            emit Transfer (supplyOwner, _to[i], amountToAdd);
           }
       }
   }
@@ -247,5 +217,48 @@ contract PonderGoldToken is AbstractToken {
       _slice[i] = accountList[i + _start];
     }
     return _slice;
+  }
+  
+  /**
+   * Freeze token transfers.
+   * May only be called by smart contract owner.
+   */
+  function freezeTransfers () public {
+    require (owners[msg.sender]);
+
+    if (!frozen) {
+      frozen = true;
+      emit Freeze ();
+    }
+  }
+
+  /**
+   * Unfreeze token transfers.
+   * May only be called by smart contract owner.
+   */
+  function unfreezeTransfers () public {
+    require (owners[msg.sender]);
+
+    if (frozen) {
+      frozen = false;
+      emit Unfreeze ();
+    }
+  }
+
+  /**
+   * Logged when token transfers were frozen.
+   */
+  event Freeze ();
+
+  /**
+   * Logged when token transfers were unfrozen.
+   */
+  event Unfreeze ();
+
+  /**
+   * Kill the token.
+   */
+  function kill() public { 
+    if (owners[msg.sender]) selfdestruct(msg.sender);
   }
 }
